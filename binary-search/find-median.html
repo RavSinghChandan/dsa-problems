@@ -51,21 +51,34 @@
       border: 1px solid #c3e6cb;
       color: #155724;
     }
-    pre {
-      background: #2e2e2e;
-      color: #f8f8f2;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: "Courier New", monospace;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-x: auto;
-      font-size: 16px;
+    .process-sticker {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
-    pre code {
+    .sticker {
+      background: #e9f7df;
+      padding: 15px;
+      border: 1px solid #c3e6cb;
+      border-radius: 50%;
+      font-size: 20px;
+      color: #155724;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      min-width: 50px;
+      text-align: center;
+    }
+    .sticker span {
       display: block;
-      padding: 0;
+      font-size: 12px;
+    }
+    .sticker.processing {
+      animation: bounce 1s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
   </style>
 </head>
@@ -83,8 +96,7 @@
       <button onclick="solveLevel('binarySearch')">Binary Search Method</button>
     </div>
     <div class="results" id="result-box"></div>
-    <h3>Executed Code</h3>
-    <pre id="code-box"><code></code></pre>
+    <div class="process-sticker" id="process-box"></div>
   </div>
 
   <script>
@@ -158,72 +170,41 @@
 
       let startTime = performance.now();
       let median;
-      let codeToDisplay = "";
+      let processSteps = [];
+
+      const processBox = document.getElementById('process-box');
+      processBox.innerHTML = '';
 
       if (method === 'bruteForce') {
+        processSteps = [
+          { text: "Combine arrays", icon: "🔗" },
+          { text: "Sort arrays", icon: "⚙️" },
+          { text: "Find median", icon: "📊" }
+        ];
         median = findMedianBruteForce(arr1, arr2);
-        codeToDisplay = `function findMedianBruteForce(arr1, arr2) {
-          const combined = [...arr1, ...arr2].sort((a, b) => a - b);
-          const mid = Math.floor(combined.length / 2);
-          return combined.length % 2 === 0
-            ? (combined[mid - 1] + combined[mid]) / 2
-            : combined[mid];
-        }`;
       } else if (method === 'mergeAndFind') {
+        processSteps = [
+          { text: "Merge arrays", icon: "🔀" },
+          { text: "Find median", icon: "📊" }
+        ];
         median = findMedianMergeAndFind(arr1, arr2);
-        codeToDisplay = `function findMedianMergeAndFind(arr1, arr2) {
-          const merged = [];
-          let i = 0, j = 0;
-          while (i < arr1.length && j < arr2.length) {
-            if (arr1[i] < arr2[j]) {
-              merged.push(arr1[i++]);
-            } else {
-              merged.push(arr2[j++]);
-            }
-          }
-          while (i < arr1.length) merged.push(arr1[i++]);
-          while (j < arr2.length) merged.push(arr2[j++]);
-
-          const mid = Math.floor(merged.length / 2);
-          return merged.length % 2 === 0
-            ? (merged[mid - 1] + merged[mid]) / 2
-            : merged[mid];
-        }`;
       } else if (method === 'binarySearch') {
+        processSteps = [
+          { text: "Partition arrays", icon: "✂️" },
+          { text: "Check partition", icon: "🔍" },
+          { text: "Find median", icon: "📊" }
+        ];
         median = findMedianBinarySearch(arr1, arr2);
-        codeToDisplay = `function findMedianBinarySearch(arr1, arr2) {
-          if (arr1.length > arr2.length) return findMedianBinarySearch(arr2, arr1);
-
-          const x = arr1.length;
-          const y = arr2.length;
-          let low = 0, high = x;
-
-          while (low <= high) {
-            const partitionX = Math.floor((low + high) / 2);
-            const partitionY = Math.floor((x + y + 1) / 2) - partitionX;
-
-            const maxX = partitionX === 0 ? -Infinity : arr1[partitionX - 1];
-            const minX = partitionX === x ? Infinity : arr1[partitionX];
-
-            const maxY = partitionY === 0 ? -Infinity : arr2[partitionY - 1];
-            const minY = partitionY === y ? Infinity : arr2[partitionY];
-
-            if (maxX <= minY && maxY <= minX) {
-              if ((x + y) % 2 === 0) {
-                return (Math.max(maxX, maxY) + Math.min(minX, minY)) / 2;
-              } else {
-                return Math.max(maxX, maxY);
-              }
-            } else if (maxX > minY) {
-              high = partitionX - 1;
-            } else {
-              low = partitionX + 1;
-            }
-          }
-
-          throw new Error("Input arrays are not sorted or invalid.");
-        }`;
       }
+
+      // Display Process
+      processSteps.forEach(step => {
+        const sticker = document.createElement('div');
+        sticker.className = 'sticker';
+        sticker.innerHTML = `${step.icon} <span>${step.text}</span>`;
+        processBox.appendChild(sticker);
+        setTimeout(() => sticker.classList.add('processing'), 100);
+      });
 
       let endTime = performance.now();
       const timeTaken = (endTime - startTime).toFixed(2);
@@ -234,9 +215,6 @@
         <p><strong>Median:</strong> ${median}</p>
         <p><strong>Time Taken:</strong> ${timeTaken} ms</p>
       `;
-
-      const codeBox = document.getElementById('code-box');
-      codeBox.textContent = codeToDisplay;
     }
   </script>
 </body>
